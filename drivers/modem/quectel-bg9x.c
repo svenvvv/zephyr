@@ -212,10 +212,15 @@ exit:
  */
 static void socket_close(struct modem_socket *sock)
 {
-	char buf[sizeof("AT+QICLOSE=##")] = {0};
+	char buf[sizeof("AT+QICLOSE=##,##")] = {0};
 	int  ret;
 
-	snprintk(buf, sizeof(buf), "AT+QICLOSE=%d", sock->sock_fd);
+	/*
+	 * Ask for the socket to be closed in MDM_CMD_TIMEOUT minus one
+	 * to make sure we don't time out and get the response in time.
+	 */
+	snprintk(buf, sizeof(buf), "AT+QICLOSE=%d,%d",
+		 sock->sock_fd, MDM_CMD_TIMEOUT_SECONDS - 1);
 
 	/* Tell the modem to close the socket. */
 	ret = modem_cmd_send(&mctx.iface, &mctx.cmd_handler,
